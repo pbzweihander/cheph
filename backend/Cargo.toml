@@ -1,0 +1,19 @@
+[package]
+name = "cheph-backend"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = { version = "1.0.66", features = ["backtrace"] }
+axum = "0.6.1"
+axum-extra = { version = "0.4.2", features = ["spa"] }
+envy = "0.4.2"
+once_cell = "1.16.0"
+serde = { version = "1.0.149", features = ["derive"] }
+thiserror = "1.0.37"
+tokio = { version = "1.22.0", features = ["rt-multi-thread", "macros", "signal"] }
+tower-http = { version = "0.3.5", features = ["trace"] }
+tracing = "0.1.37"
+tracing-subscriber = { version = "0.3.16", features = ["json", "env-filter"] }
