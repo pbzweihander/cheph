@@ -1,5 +1,6 @@
 mod config;
 mod handler;
+mod s3;
 mod types;
 
 use anyhow::Result;
@@ -46,7 +47,7 @@ async fn main() -> Result<()> {
         )
         .init();
 
-    let router = crate::handler::create_router();
+    let router = crate::handler::create_router().await;
 
     let listen_addr = &crate::config::CONFIG.listen_addr;
     tracing::info!(%listen_addr, "starting http server...");

@@ -36,6 +36,8 @@ pub struct Config {
 
     pub github_client_id: String,
     pub github_client_secret: String,
+
+    pub s3_bucket_name: String,
 }
 
 impl Config {

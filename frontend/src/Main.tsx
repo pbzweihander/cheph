@@ -11,7 +11,7 @@ function Main() {
   }
 
   if (user) {
-    return <Navigate to="/hello" />;
+    return <Navigate to="/tag" />;
   }
 
   return <div></div>;

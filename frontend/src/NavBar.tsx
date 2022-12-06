@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 
 import { Menu } from "./Icons";
 import { useUserFromQuery } from "./QueryHooks";
@@ -16,6 +16,20 @@ export default function NavBar(): React.ReactElement {
   if (!isUserLoading && user) {
     navItems = (
       <>
+        <li className="nav-item">
+          <Link to="/tag">
+            <span className="px-3 py-2 flex items-center hover:opacity-75">
+              <span className="ml-2">Tags</span>
+            </span>
+          </Link>
+        </li>
+        <li className="nav-item">
+          <Link to="/upload">
+            <span className="px-3 py-2 flex items-center hover:opacity-75">
+              <span className="ml-2">Upload</span>
+            </span>
+          </Link>
+        </li>
         <li className="nav-item">
           <button>
             <span className="px-3 py-2 flex items-center hover:opacity-75">
@@ -46,7 +60,7 @@ export default function NavBar(): React.ReactElement {
 
   return (
     <>
-      <nav className="relative flex flex-wrap items-center justify-between px-2 py-3 mb-3 bg-gray-50">
+      <nav className="relative flex flex-wrap items-center justify-between px-2 py-3 bg-gray-100">
         <div className="container px-4 mx-auto flex flex-wrap items-center justify-between">
           <div className="w-full relative flex justify-between lg:w-auto lg:static lg:block lg:justify-start">
             <h1 className="text-4xl font-mono">cheph</h1>
@@ -70,7 +84,9 @@ export default function NavBar(): React.ReactElement {
           </div>
         </div>
       </nav>
-      <Outlet />
+      <div className="h-screen w-full bg-gray-200 overflow-y-auto flex flex-col p-5">
+        <Outlet />
+      </div>
     </>
   );
 }

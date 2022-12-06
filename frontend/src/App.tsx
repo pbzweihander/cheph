@@ -4,9 +4,12 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthRequired } from "./Auth";
 import { createClient } from "./Axios";
 import { AxiosClientProvider } from "./AxiosContext";
-import Hello from "./Hello";
 import Main from "./Main";
 import NavBar from "./NavBar";
+import Photo from "./Photo";
+import PhotosByTag from "./PhotosByTag";
+import Tags from "./Tags";
+import UploadPhoto from "./UploadPhoto";
 
 const queryClient = new QueryClient();
 const axiosClient = createClient();
@@ -20,10 +23,34 @@ function App() {
             <Route element={<NavBar />}>
               <Route path="/" element={<Main />} />
               <Route
-                path="/hello"
+                path="/tag"
                 element={
                   <AuthRequired>
-                    <Hello />
+                    <Tags />
+                  </AuthRequired>
+                }
+              />
+              <Route
+                path="/upload"
+                element={
+                  <AuthRequired>
+                    <UploadPhoto />
+                  </AuthRequired>
+                }
+              />
+              <Route
+                path="/photo/:name"
+                element={
+                  <AuthRequired>
+                    <Photo />
+                  </AuthRequired>
+                }
+              />
+              <Route
+                path="/photos-by-tag/:tag"
+                element={
+                  <AuthRequired>
+                    <PhotosByTag />
                   </AuthRequired>
                 }
               />

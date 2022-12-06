@@ -8,6 +8,8 @@ pub enum Error {
     Authorize,
     #[error("failed to log out")]
     LogOut,
+    #[error("failed to request to S3: {0}")]
+    S3(anyhow::Error),
 }
 
 impl Error {
