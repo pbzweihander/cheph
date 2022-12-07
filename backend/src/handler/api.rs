@@ -5,6 +5,7 @@ use axum::{
     routing, Json, Router,
 };
 use serde::Deserialize;
+use serde_with::{serde_as, DisplayFromStr};
 
 use crate::{
     s3::{self, list_metadatas},
@@ -48,8 +49,36 @@ async fn handle_post_photo(
     Ok(())
 }
 
+fn default_page_size() -> usize {
+    15
+}
+
+#[serde_as]
+#[derive(Deserialize)]
+struct Pagination {
+    #[serde(default)]
+    #[serde_as(as = "DisplayFromStr")]
+    page: usize,
+    #[serde(default = "default_page_size")]
+    #[serde_as(as = "DisplayFromStr")]
+    page_size: usize,
+}
+
+impl Pagination {
+    fn apply<T>(&self, iter: impl Iterator<Item = T>) -> impl Iterator<Item = T> {
+        iter.skip(self.page * self.page_size).take(self.page_size)
+    }
+}
+
+#[derive(Deserialize)]
+struct GetTagsWithSampleReq {
+    #[serde(flatten)]
+    pagination: Pagination,
+}
+
 async fn handle_get_tags_with_sample(
     _user: User,
+    Query(req): Query<GetTagsWithSampleReq>,
     State(state): State<AppState>,
 ) -> ResponseResult<Json<BTreeMap<String, MetadataWithName>>> {
     let metadatas = list_metadatas(state.s3_client)
@@ -68,11 +97,14 @@ async fn handle_get_tags_with_sample(
                 .or_insert_with(|| metadata.clone());
         }
     }
+    let tags_with_sample = req.pagination.apply(tags_with_sample.into_iter()).collect();
     Ok(Json(tags_with_sample))
 }
 
 #[derive(Deserialize)]
 struct GetMetadatasByTagReq {
+    #[serde(flatten)]
+    pagination: Pagination,
     tag: String,
 }
 
@@ -86,7 +118,7 @@ async fn handle_get_metadatas_by_tag(
         .map_err(|e| Error::S3(e).into_anyhow())?;
     let metadatas = metadatas
         .into_iter()
-        .filter(|metadata| metadata.metadata.tags.contains(&req.tag))
-        .collect();
+        .filter(|metadata| metadata.metadata.tags.contains(&req.tag));
+    let metadatas = req.pagination.apply(metadatas.rev()).collect();
     Ok(Json(metadatas))
 }
