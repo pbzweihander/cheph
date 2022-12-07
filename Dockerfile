@@ -20,6 +20,10 @@ RUN yarn && yarn build
 
 FROM debian:stable-slim
 
+RUN apt-get update &&\
+    apt-get install -y ca-certificates &&\
+    rm -rf /var/lib/apt/lists/*
+
 COPY --from=backend /app/target/release/cheph-backend /usr/local/bin/cheph-backend
 COPY --from=frontend /app/frontend/build /srv/static
 
