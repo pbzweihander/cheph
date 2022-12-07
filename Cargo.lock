@@ -624,12 +624,14 @@ dependencies = [
  "envy",
  "futures-util",
  "http",
+ "itertools",
  "oauth2",
  "once_cell",
  "reqwest",
  "serde",
  "serde_json",
  "serde_with",
+ "simsearch",
  "thiserror",
  "tokio",
  "tower-http",
@@ -1217,6 +1219,15 @@ name = "ipnet"
 version = "2.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f88c5561171189e69df9d98bcf18fd5f9558300f7ea7b801eb8a0fd748bd8745"
+
+[[package]]
+name = "itertools"
+version = "0.10.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b0fd2260e829bddf4cb6ea802289de2f86d6a7a690192fbe91b3f46e0f2c8473"
+dependencies = [
+ "either",
+]
 
 [[package]]
 name = "itoa"
@@ -1849,6 +1860,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "simsearch"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec7c616f4afa8be07117e344990cc90651fbaad06055655f3d8cc4a668675398"
+dependencies = [
+ "strsim",
+ "triple_accel",
+]
+
+[[package]]
 name = "slab"
 version = "0.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2194,6 +2215,12 @@ dependencies = [
  "tracing-log",
  "tracing-serde",
 ]
+
+[[package]]
+name = "triple_accel"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "622b09ce2fe2df4618636fb92176d205662f59803f39e70d1c333393082de96c"
 
 [[package]]
 name = "try-lock"

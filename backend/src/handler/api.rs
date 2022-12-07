@@ -4,8 +4,10 @@ use axum::{
     extract::{Path, Query, RawBody, State},
     routing, Json, Router,
 };
+use itertools::Itertools;
 use serde::Deserialize;
 use serde_with::{serde_as, DisplayFromStr};
+use simsearch::{SearchOptions, SimSearch};
 
 use crate::{
     s3::{self, list_metadatas},
@@ -29,6 +31,7 @@ pub(super) fn create_api_router() -> Router<AppState> {
             "/metadatas-by-tag",
             routing::get(handle_get_metadatas_by_tag),
         )
+        .route("/search", routing::post(handle_post_search))
 }
 
 async fn handle_get_user(user: User) -> Json<User> {
@@ -120,5 +123,42 @@ async fn handle_get_metadatas_by_tag(
         .into_iter()
         .filter(|metadata| metadata.metadata.tags.contains(&req.tag));
     let metadatas = req.pagination.apply(metadatas.rev()).collect();
+    Ok(Json(metadatas))
+}
+
+#[derive(Deserialize)]
+struct PostSearchReq {
+    token: String,
+}
+
+async fn handle_post_search(
+    _user: User,
+    State(state): State<AppState>,
+    Json(req): Json<PostSearchReq>,
+) -> ResponseResult<Json<Vec<MetadataWithName>>> {
+    let metadatas = list_metadatas(state.s3_client)
+        .await
+        .map_err(|e| Error::S3(e).into_anyhow())?;
+
+    let search_options = SearchOptions::new()
+        .stop_words(vec!["-".to_string(), "_".to_string(), ".".to_string()])
+        .threshold(0.7);
+    let mut search = SimSearch::new_with(search_options);
+
+    for metadata in metadatas {
+        search.insert(
+            metadata.clone(),
+            &format!(
+                "{}\n{}\n{}",
+                metadata.name,
+                metadata.metadata.description,
+                metadata.metadata.tags.iter().join("\n")
+            ),
+        );
+    }
+
+    let mut metadatas = search.search(&req.token);
+    metadatas.truncate(30);
+
     Ok(Json(metadatas))
 }

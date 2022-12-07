@@ -6,7 +6,7 @@ import {
 } from "react-query";
 
 import { useAxiosClient } from "./AxiosContext";
-import { UploadReq } from "./HttpTypes";
+import { MetadataWithName, SearchReq, UploadReq } from "./HttpTypes";
 
 type MutationRet<T, Ret = void> = UseMutationResult<
   Ret,
@@ -27,5 +27,15 @@ export function useUploadMutation(
     await client.post(`/api/photo/${payload.file.name}`, payload.file, {
       params: payload.metadata,
     });
+  }, options);
+}
+
+export function useSearchMutation(
+  options?: MutationOption<SearchReq, MetadataWithName[]>
+): MutationRet<SearchReq, MetadataWithName[]> {
+  const client = useAxiosClient();
+  return useMutation(async (payload: SearchReq) => {
+    const resp = await client.post<MetadataWithName[]>("/api/search", payload);
+    return resp.data;
   }, options);
 }

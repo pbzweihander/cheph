@@ -24,3 +24,7 @@ export interface UploadReq {
 }
 
 export type TagsWithSample = Map<String, MetadataWithName>;
+
+export interface SearchReq {
+  token: string;
+}

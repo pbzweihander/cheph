@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Metadata {
     pub creator_email: String,
@@ -18,12 +18,6 @@ impl Metadata {
             metadata: self,
             name,
         }
-    }
-}
-
-impl PartialEq for Metadata {
-    fn eq(&self, other: &Self) -> bool {
-        self.created_at.eq(&other.created_at)
     }
 }
 
@@ -66,7 +60,7 @@ impl From<MetadataCreationRequest> for Metadata {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize)]
 pub struct MetadataWithName {
     #[serde(flatten)]
     pub metadata: Metadata,

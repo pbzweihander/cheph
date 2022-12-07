@@ -8,6 +8,7 @@ import Main from "./Main";
 import NavBar from "./NavBar";
 import Photo from "./Photo";
 import PhotosByTag from "./PhotosByTag";
+import Search from "./Search";
 import Tags from "./Tags";
 import UploadPhoto from "./UploadPhoto";
 
@@ -51,6 +52,14 @@ function App() {
                 element={
                   <AuthRequired>
                     <PhotosByTag />
+                  </AuthRequired>
+                }
+              />
+              <Route
+                path="/search"
+                element={
+                  <AuthRequired>
+                    <Search />
                   </AuthRequired>
                 }
               />
