@@ -6,7 +6,12 @@ import {
 } from "react-query";
 
 import { useAxiosClient } from "./AxiosContext";
-import { MetadataWithName, SearchReq, UploadReq } from "./HttpTypes";
+import {
+  MetadataUpdateRequest,
+  MetadataWithName,
+  SearchReq,
+  UploadReq,
+} from "./HttpTypes";
 
 type MutationRet<T, Ret = void> = UseMutationResult<
   Ret,
@@ -37,5 +42,18 @@ export function useSearchMutation(
   return useMutation(async (payload: SearchReq) => {
     const resp = await client.post<MetadataWithName[]>("/api/search", payload);
     return resp.data;
+  }, options);
+}
+
+export function useEditPhotoMutation(
+  name: string | undefined,
+  options?: MutationOption<MetadataUpdateRequest>
+): MutationRet<MetadataUpdateRequest> {
+  const client = useAxiosClient();
+  return useMutation(async (payload: MetadataUpdateRequest) => {
+    if (!name) {
+      return;
+    }
+    await client.put(`/api/photo/${name}`, payload);
   }, options);
 }

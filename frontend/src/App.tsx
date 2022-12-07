@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthRequired } from "./Auth";
 import { createClient } from "./Axios";
 import { AxiosClientProvider } from "./AxiosContext";
+import EditPhoto from "./EditPhoto";
 import Main from "./Main";
 import NavBar from "./NavBar";
 import Photo from "./Photo";
@@ -60,6 +61,14 @@ function App() {
                 element={
                   <AuthRequired>
                     <Search />
+                  </AuthRequired>
+                }
+              />
+              <Route
+                path="/photo/:name/edit"
+                element={
+                  <AuthRequired>
+                    <EditPhoto />
                   </AuthRequired>
                 }
               />

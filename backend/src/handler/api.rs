@@ -12,7 +12,7 @@ use simsearch::{SearchOptions, SimSearch};
 use crate::{
     s3::{self, list_metadatas},
     types::{
-        asset::{Metadata, MetadataCreationRequest, MetadataWithName},
+        asset::{Metadata, MetadataCreationRequest, MetadataUpdateRequest, MetadataWithName},
         error::Error,
     },
 };
@@ -22,7 +22,10 @@ use super::{auth::User, AppState, ResponseResult};
 pub(super) fn create_api_router() -> Router<AppState> {
     Router::new()
         .route("/user", routing::get(handle_get_user))
-        .route("/photo/:name", routing::post(handle_post_photo))
+        .route(
+            "/photo/:name",
+            routing::post(handle_post_photo).put(handle_put_photo),
+        )
         .route(
             "/tags-with-sample",
             routing::get(handle_get_tags_with_sample),
@@ -47,6 +50,29 @@ async fn handle_post_photo(
 ) -> ResponseResult<()> {
     let metadata: Metadata = metadata_creation_req.into();
     s3::upload_photo(state.s3_client, name, metadata, body)
+        .await
+        .map_err(|e| Error::S3(e).into_anyhow())?;
+    Ok(())
+}
+
+async fn handle_put_photo(
+    _user: User,
+    Path(name): Path<String>,
+    State(state): State<AppState>,
+    Json(req): Json<MetadataUpdateRequest>,
+) -> ResponseResult<()> {
+    let resp = s3::get_metadata(state.s3_client.clone(), name.clone())
+        .await
+        .map_err(|e| Error::S3(e).into_anyhow())?;
+    let body = resp
+        .body
+        .collect()
+        .await
+        .map_err(|e| Error::S3(e.into()).into_anyhow())?
+        .into_bytes();
+    let metadata = serde_json::from_slice(&body).map_err(|e| Error::S3(e.into()).into_anyhow())?;
+    let metadata = req.update(metadata);
+    s3::upload_metadata(state.s3_client, name, metadata)
         .await
         .map_err(|e| Error::S3(e).into_anyhow())?;
     Ok(())

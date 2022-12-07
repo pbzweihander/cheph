@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 import { useMetadata } from "./QueryHooks";
 import Spinner from "./Spinner";
@@ -22,7 +22,7 @@ function Photo() {
       </div>
       <div className="w-1/3 p-5">
         <div className="mb-2">{metadata.description}</div>
-        <div>
+        <div className="mb-5">
           {metadata.tags.map((tag) => (
             <span
               key={tag}
@@ -32,6 +32,12 @@ function Photo() {
             </span>
           ))}
         </div>
+        <Link
+          className="rounded-full px-5 py-2 bg-white"
+          to={`/photo/${name}/edit`}
+        >
+          Edit
+        </Link>
       </div>
     </div>
   );

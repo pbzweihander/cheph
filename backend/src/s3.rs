@@ -28,20 +28,7 @@ pub async fn get_metadata(s3_client: Client, name: String) -> Result<GetObjectOu
     get_object(s3_client, &format!("metadata/{}.json", name)).await
 }
 
-pub async fn upload_photo(
-    s3_client: Client,
-    name: String,
-    metadata: Metadata,
-    photo_body: Body,
-) -> Result<()> {
-    s3_client
-        .put_object()
-        .bucket(&CONFIG.s3_bucket_name)
-        .key(format!("photo/{}", name))
-        .body(photo_body.into())
-        .send()
-        .await?;
-
+pub async fn upload_metadata(s3_client: Client, name: String, metadata: Metadata) -> Result<()> {
     s3_client
         .put_object()
         .bucket(&CONFIG.s3_bucket_name)
@@ -49,6 +36,25 @@ pub async fn upload_photo(
         .body(serde_json::to_vec(&metadata)?.into())
         .send()
         .await?;
+    Ok(())
+}
+
+pub async fn upload_photo(
+    s3_client: Client,
+    name: String,
+    metadata: Metadata,
+    photo_body: Body,
+) -> Result<()> {
+    s3_client
+        .clone()
+        .put_object()
+        .bucket(&CONFIG.s3_bucket_name)
+        .key(format!("photo/{}", name))
+        .body(photo_body.into())
+        .send()
+        .await?;
+
+    upload_metadata(s3_client, name, metadata).await?;
 
     Ok(())
 }

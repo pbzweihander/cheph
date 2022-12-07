@@ -28,3 +28,8 @@ export type TagsWithSample = Map<String, MetadataWithName>;
 export interface SearchReq {
   token: string;
 }
+
+export interface MetadataUpdateRequest {
+  tags: string;
+  description: string;
+}

@@ -17,16 +17,16 @@ export default function NavBar(): React.ReactElement {
     navItems = (
       <>
         <li className="nav-item">
-          <Link to="/search">
+          <Link to="/tag">
             <span className="px-3 py-2 flex items-center hover:opacity-75">
-              <span className="ml-2">Search</span>
+              <span className="ml-2">Tags</span>
             </span>
           </Link>
         </li>
         <li className="nav-item">
-          <Link to="/tag">
+          <Link to="/search">
             <span className="px-3 py-2 flex items-center hover:opacity-75">
-              <span className="ml-2">Tags</span>
+              <span className="ml-2">Search</span>
             </span>
           </Link>
         </li>
@@ -39,7 +39,7 @@ export default function NavBar(): React.ReactElement {
         </li>
         <li className="nav-item">
           <button>
-            <span className="px-3 py-2 flex items-center hover:opacity-75">
+            <span className="px-3 py-2 flex items-center cursor-default">
               <span className="ml-2">{user.primaryEmail}</span>
             </span>
           </button>

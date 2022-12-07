@@ -33,7 +33,7 @@ impl Ord for Metadata {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MetadataCreationRequest {
     pub creator_email: String,
@@ -52,6 +52,33 @@ impl From<MetadataCreationRequest> for Metadata {
         let created_at = Utc::now();
         let tags = tags.split(',').map(str::trim).map(str::to_string).collect();
         Self {
+            creator_email,
+            created_at,
+            tags,
+            description,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MetadataUpdateRequest {
+    pub tags: String,
+    pub description: String,
+}
+
+impl MetadataUpdateRequest {
+    pub fn update(
+        self,
+        Metadata {
+            creator_email,
+            created_at,
+            ..
+        }: Metadata,
+    ) -> Metadata {
+        let MetadataUpdateRequest { tags, description } = self;
+        let tags = tags.split(',').map(str::trim).map(str::to_string).collect();
+        Metadata {
             creator_email,
             created_at,
             tags,
