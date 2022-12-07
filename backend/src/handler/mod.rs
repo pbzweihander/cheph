@@ -77,7 +77,7 @@ pub async fn create_router() -> Router {
         .nest("/auth", auth)
         .with_state(AppState::new().await)
         .route("/health", routing::get(handle_get_health))
-        .merge(SpaRouter::new("/", &CONFIG.static_file_directory))
+        .merge(SpaRouter::new("/static", &CONFIG.static_file_directory))
         .layer(tower_http::trace::TraceLayer::new_for_http())
 }
 
