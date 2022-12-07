@@ -2,7 +2,7 @@ mod api;
 mod asset;
 mod auth;
 
-use axum::{http::StatusCode, response, Router};
+use axum::{http::StatusCode, response, routing, Router};
 use axum_extra::routing::SpaRouter;
 
 use crate::{config::CONFIG, types::error::Error};
@@ -76,6 +76,9 @@ pub async fn create_router() -> Router {
         .nest("/asset", asset)
         .nest("/auth", auth)
         .with_state(AppState::new().await)
+        .route("/health", routing::get(handle_get_health))
         .merge(SpaRouter::new("/", &CONFIG.static_file_directory))
         .layer(tower_http::trace::TraceLayer::new_for_http())
 }
+
+async fn handle_get_health() {}
