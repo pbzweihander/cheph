@@ -2,8 +2,9 @@
 name = "cheph-backend"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["Kangwook Lee <pbzweihander@gmail.com>"]
+repository = "https://github.com/pbzweihander/cheph"
+license = "Apache-2.0"
 
 [dependencies]
 anyhow = { version = "1.0.66", features = ["backtrace"] }
