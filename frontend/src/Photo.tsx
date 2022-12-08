@@ -24,12 +24,13 @@ function Photo() {
         <div className="mb-2 whitespace-pre-line">{metadata.description}</div>
         <div className="mb-5">
           {metadata.tags.map((tag) => (
-            <span
+            <Link
               key={tag}
               className="inline-block bg-gray-300 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2"
+              to={`/photos-by-tag/${tag}`}
             >
               #{tag}
-            </span>
+            </Link>
           ))}
         </div>
         <Link
