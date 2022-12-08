@@ -21,7 +21,7 @@ function Photo() {
         <img src={`/asset/photo/${name}`} alt={metadata.description} />
       </div>
       <div className="w-1/3 p-5">
-        <div className="mb-2">{metadata.description}</div>
+        <div className="mb-2 whitespace-pre-line">{metadata.description}</div>
         <div className="mb-5">
           {metadata.tags.map((tag) => (
             <span
