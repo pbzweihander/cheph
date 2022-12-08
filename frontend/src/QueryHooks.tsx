@@ -82,6 +82,49 @@ export function useMetadata(
   });
 }
 
+export function useMetadatasInfinite(): UseInfiniteQueryWithScrollRet<
+  MetadataWithName[]
+> {
+  const client = useAxiosClient();
+
+  const { data, error, isFetching, fetchNextPage } = useInfiniteQuery(
+    ["metadatas"],
+    async ({ pageParam = 0 }) => {
+      const resp = await client.get<MetadataWithName[]>("/api/metadatas", {
+        params: { page: pageParam },
+      });
+      const nextPage = resp.data.length > 0 ? pageParam + 1 : undefined;
+      return { result: resp.data, nextPage, isLast: !nextPage };
+    },
+    { getNextPageParam: (lastPage) => lastPage.nextPage }
+  );
+
+  const ObservationComponent = (): ReactElement => {
+    const [ref, inView] = useInView();
+
+    useEffect(() => {
+      if (!data) return;
+
+      const pageLastIdx = data.pages.length - 1;
+      const isLast = data?.pages[pageLastIdx].isLast;
+
+      if (!isLast && inView) fetchNextPage();
+    }, [inView]);
+
+    return <div ref={ref} />;
+  };
+
+  return {
+    data: data?.pages.reduce(
+      (result, value) => result.concat(value.result),
+      new Array<MetadataWithName>()
+    ),
+    error,
+    isFetching,
+    ObservationComponent,
+  };
+}
+
 export function useMetadatasByTagInfinite(
   tag: string | undefined
 ): UseInfiniteQueryWithScrollRet<MetadataWithName[]> {

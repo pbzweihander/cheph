@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 use axum::{
     extract::{Path, Query, RawBody, State},
@@ -30,6 +30,7 @@ pub(super) fn create_api_router() -> Router<AppState> {
             "/tags-with-sample",
             routing::get(handle_get_tags_with_sample),
         )
+        .route("/metadatas", routing::get(handle_get_metadatas))
         .route(
             "/metadatas-by-tag",
             routing::get(handle_get_metadatas_by_tag),
@@ -129,6 +130,22 @@ async fn handle_get_tags_with_sample(
 }
 
 #[derive(Deserialize)]
+struct GetMetadatasReq {
+    #[serde(flatten)]
+    pagination: Pagination,
+}
+
+async fn handle_get_metadatas(
+    _user: User,
+    Query(req): Query<GetMetadatasReq>,
+    State(state): State<AppState>,
+) -> ResponseResult<Json<Vec<MetadataWithName>>> {
+    let metadatas = list_metadatas(state.s3_client).await.map_err(Error::S3)?;
+    let metadatas = req.pagination.apply(metadatas.into_iter().rev()).collect();
+    Ok(Json(metadatas))
+}
+
+#[derive(Deserialize)]
 struct GetMetadatasByTagReq {
     #[serde(flatten)]
     pagination: Pagination,
@@ -139,7 +156,7 @@ async fn handle_get_metadatas_by_tag(
     _user: User,
     Query(req): Query<GetMetadatasByTagReq>,
     State(state): State<AppState>,
-) -> ResponseResult<Json<BTreeSet<MetadataWithName>>> {
+) -> ResponseResult<Json<Vec<MetadataWithName>>> {
     let metadatas = list_metadatas(state.s3_client).await.map_err(Error::S3)?;
     let metadatas = metadatas
         .into_iter()

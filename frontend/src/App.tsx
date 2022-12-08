@@ -8,6 +8,7 @@ import EditPhoto from "./EditPhoto";
 import Main from "./Main";
 import NavBar from "./NavBar";
 import Photo from "./Photo";
+import Photos from "./Photos";
 import PhotosByTag from "./PhotosByTag";
 import Search from "./Search";
 import Tags from "./Tags";
@@ -25,10 +26,26 @@ function App() {
             <Route element={<NavBar />}>
               <Route path="/" element={<Main />} />
               <Route
+                path="/photo"
+                element={
+                  <AuthRequired>
+                    <Photos />
+                  </AuthRequired>
+                }
+              />
+              <Route
                 path="/tag"
                 element={
                   <AuthRequired>
                     <Tags />
+                  </AuthRequired>
+                }
+              />
+              <Route
+                path="/search"
+                element={
+                  <AuthRequired>
+                    <Search />
                   </AuthRequired>
                 }
               />
@@ -41,14 +58,6 @@ function App() {
                 }
               />
               <Route
-                path="/photo/:name"
-                element={
-                  <AuthRequired>
-                    <Photo />
-                  </AuthRequired>
-                }
-              />
-              <Route
                 path="/photos-by-tag/:tag"
                 element={
                   <AuthRequired>
@@ -57,10 +66,10 @@ function App() {
                 }
               />
               <Route
-                path="/search"
+                path="/photo/:name"
                 element={
                   <AuthRequired>
-                    <Search />
+                    <Photo />
                   </AuthRequired>
                 }
               />

@@ -7,7 +7,11 @@ import { useUserFromQuery } from "./QueryHooks";
 export default function NavBar(): React.ReactElement {
   const navigate = useNavigate();
   const [navbarOpen, setNavbarOpen] = useState(false);
-  const { data: user, isLoading: isUserLoading, remove: removeUser } = useUserFromQuery();
+  const {
+    data: user,
+    isLoading: isUserLoading,
+    remove: removeUser,
+  } = useUserFromQuery();
 
   const onLogOut = () => {
     document.cookie = "SESSION=; Max-Age=-99999999;";
@@ -19,6 +23,13 @@ export default function NavBar(): React.ReactElement {
   if (!isUserLoading && user) {
     navItems = (
       <>
+        <li className="nav-item">
+          <Link to="/photo">
+            <span className="px-3 py-2 flex items-center hover:opacity-75">
+              <span className="ml-2">Photos</span>
+            </span>
+          </Link>
+        </li>
         <li className="nav-item">
           <Link to="/tag">
             <span className="px-3 py-2 flex items-center hover:opacity-75">
