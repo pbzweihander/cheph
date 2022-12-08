@@ -15,6 +15,12 @@ impl From<anyhow::Error> for ResponseError {
     }
 }
 
+impl From<Error> for ResponseError {
+    fn from(error: Error) -> Self {
+        Self(error.into())
+    }
+}
+
 impl response::IntoResponse for ResponseError {
     fn into_response(self) -> response::Response {
         let status_code = if let Some(error) = self.0.downcast_ref::<Error>() {
@@ -22,7 +28,6 @@ impl response::IntoResponse for ResponseError {
                 Error::UserNotAuthorized => StatusCode::UNAUTHORIZED,
                 Error::UserNotAllowed => StatusCode::UNAUTHORIZED,
                 Error::Authorize => StatusCode::INTERNAL_SERVER_ERROR,
-                Error::LogOut => StatusCode::INTERNAL_SERVER_ERROR,
                 Error::S3(_) => StatusCode::INTERNAL_SERVER_ERROR,
             }
         } else {
@@ -39,7 +44,6 @@ pub struct AppState {
     http_client: reqwest::Client,
     oauth_client: oauth2::basic::BasicClient,
     s3_client: aws_sdk_s3::Client,
-    session_store: async_session::MemoryStore,
 }
 
 impl AppState {
@@ -55,13 +59,11 @@ impl AppState {
         let oauth_client = self::auth::create_oauth_client();
         let aws_config = aws_config::load_from_env().await;
         let s3_client = aws_sdk_s3::Client::new(&aws_config);
-        let session_store = async_session::MemoryStore::new();
 
         Self {
             http_client,
             oauth_client,
             s3_client,
-            session_store,
         }
     }
 }

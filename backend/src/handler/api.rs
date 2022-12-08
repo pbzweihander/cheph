@@ -51,7 +51,7 @@ async fn handle_post_photo(
     let metadata: Metadata = metadata_creation_req.into();
     s3::upload_photo(state.s3_client, name, metadata, body)
         .await
-        .map_err(|e| Error::S3(e).into_anyhow())?;
+        .map_err(Error::S3)?;
     Ok(())
 }
 
@@ -63,18 +63,18 @@ async fn handle_put_photo(
 ) -> ResponseResult<()> {
     let resp = s3::get_metadata(state.s3_client.clone(), name.clone())
         .await
-        .map_err(|e| Error::S3(e).into_anyhow())?;
+        .map_err(Error::S3)?;
     let body = resp
         .body
         .collect()
         .await
-        .map_err(|e| Error::S3(e.into()).into_anyhow())?
+        .map_err(|e| Error::S3(e.into()))?
         .into_bytes();
-    let metadata = serde_json::from_slice(&body).map_err(|e| Error::S3(e.into()).into_anyhow())?;
+    let metadata = serde_json::from_slice(&body).map_err(|e| Error::S3(e.into()))?;
     let metadata = req.update(metadata);
     s3::upload_metadata(state.s3_client, name, metadata)
         .await
-        .map_err(|e| Error::S3(e).into_anyhow())?;
+        .map_err(Error::S3)?;
     Ok(())
 }
 
@@ -110,9 +110,7 @@ async fn handle_get_tags_with_sample(
     Query(req): Query<GetTagsWithSampleReq>,
     State(state): State<AppState>,
 ) -> ResponseResult<Json<BTreeMap<String, MetadataWithName>>> {
-    let metadatas = list_metadatas(state.s3_client)
-        .await
-        .map_err(|e| Error::S3(e).into_anyhow())?;
+    let metadatas = list_metadatas(state.s3_client).await.map_err(Error::S3)?;
     let mut tags_with_sample = BTreeMap::new();
     for metadata in metadatas {
         for tag in &metadata.metadata.tags {
@@ -142,9 +140,7 @@ async fn handle_get_metadatas_by_tag(
     Query(req): Query<GetMetadatasByTagReq>,
     State(state): State<AppState>,
 ) -> ResponseResult<Json<BTreeSet<MetadataWithName>>> {
-    let metadatas = list_metadatas(state.s3_client)
-        .await
-        .map_err(|e| Error::S3(e).into_anyhow())?;
+    let metadatas = list_metadatas(state.s3_client).await.map_err(Error::S3)?;
     let metadatas = metadatas
         .into_iter()
         .filter(|metadata| metadata.metadata.tags.contains(&req.tag));
@@ -162,9 +158,7 @@ async fn handle_post_search(
     State(state): State<AppState>,
     Json(req): Json<PostSearchReq>,
 ) -> ResponseResult<Json<Vec<MetadataWithName>>> {
-    let metadatas = list_metadatas(state.s3_client)
-        .await
-        .map_err(|e| Error::S3(e).into_anyhow())?;
+    let metadatas = list_metadatas(state.s3_client).await.map_err(Error::S3)?;
 
     let search_options = SearchOptions::new()
         .stop_words(vec!["-".to_string(), "_".to_string(), ".".to_string()])

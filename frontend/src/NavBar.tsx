@@ -1,15 +1,18 @@
 import { useState } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 
 import { Menu } from "./Icons";
 import { useUserFromQuery } from "./QueryHooks";
 
 export default function NavBar(): React.ReactElement {
+  const navigate = useNavigate();
   const [navbarOpen, setNavbarOpen] = useState(false);
-  const { data: user, isLoading: isUserLoading } = useUserFromQuery();
+  const { data: user, isLoading: isUserLoading, remove: removeUser } = useUserFromQuery();
 
   const onLogOut = () => {
-    window.location.replace("/auth/logout");
+    document.cookie = "SESSION=; Max-Age=-99999999;";
+    removeUser();
+    navigate("/");
   };
 
   let navItems;

@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
+use jsonwebtoken::{DecodingKey, EncodingKey};
 use once_cell::sync::Lazy;
 use serde::Deserialize;
 
@@ -23,6 +24,17 @@ where
     Ok(s.split(',').map(str::to_string).collect())
 }
 
+fn deserialize_jwt_secret<'de, D>(d: D) -> Result<(EncodingKey, DecodingKey), D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = std::borrow::Cow::<'_, str>::deserialize(d)?;
+    Ok((
+        EncodingKey::from_secret(s.as_bytes()),
+        DecodingKey::from_secret(s.as_bytes()),
+    ))
+}
+
 #[derive(Deserialize)]
 pub struct Config {
     #[serde(default = "default_listen_addr")]
@@ -36,6 +48,9 @@ pub struct Config {
 
     pub github_client_id: String,
     pub github_client_secret: String,
+
+    #[serde(deserialize_with = "deserialize_jwt_secret")]
+    pub jwt_secret: (EncodingKey, DecodingKey),
 
     pub s3_bucket_name: String,
 }

@@ -1,5 +1,4 @@
 use anyhow::Result;
-use async_session::{MemoryStore, Session, SessionStore};
 use axum::{
     async_trait,
     extract::{rejection::TypedHeaderRejectionReason, FromRequestParts, Query, State},
@@ -8,10 +7,12 @@ use axum::{
     response::Redirect,
     routing, RequestPartsExt, Router, TypedHeader,
 };
+use chrono::{Duration, Utc};
 use http::{
     header::{self, ACCEPT, SET_COOKIE},
     HeaderMap,
 };
+use jsonwebtoken::{decode, encode, Validation};
 use oauth2::{
     basic::BasicClient, reqwest::async_http_client, AuthUrl, AuthorizationCode, ClientId,
     ClientSecret, CsrfToken, Scope, TokenResponse, TokenUrl,
@@ -37,7 +38,6 @@ pub(super) fn create_auth_router() -> Router<AppState> {
     Router::new()
         .route("/github", routing::get(handle_get_github))
         .route("/authorized", routing::get(handle_get_authorized))
-        .route("/logout", routing::get(handle_get_logout))
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -45,51 +45,42 @@ pub(super) fn create_auth_router() -> Router<AppState> {
 pub(super) struct User {
     pub primary_email: String,
     pub emails: Vec<String>,
+    pub exp: i64,
 }
 
 #[async_trait]
-impl FromRequestParts<AppState> for User {
+impl<S> FromRequestParts<S> for User
+where
+    S: Send + Sync,
+{
     type Rejection = ResponseError;
 
-    async fn from_request_parts(
-        parts: &mut Parts,
-        state: &AppState,
-    ) -> Result<Self, Self::Rejection> {
-        let store = &state.session_store;
-
+    async fn from_request_parts(parts: &mut Parts, _: &S) -> Result<Self, Self::Rejection> {
         let cookies = parts
             .extract::<TypedHeader<headers::Cookie>>()
             .await
-            .map_err(|e| {
-                match *e.name() {
-                    header::COOKIE => match e.reason() {
-                        TypedHeaderRejectionReason::Missing => Error::UserNotAuthorized,
-                        _ => Error::Authorize,
-                    },
+            .map_err(|e| match *e.name() {
+                header::COOKIE => match e.reason() {
+                    TypedHeaderRejectionReason::Missing => Error::UserNotAuthorized,
                     _ => Error::Authorize,
-                }
-                .into_anyhow()
+                },
+                _ => Error::Authorize,
             })?;
-        let session_cookie = cookies
-            .get(COOKIE_NAME)
-            .ok_or_else(|| anyhow::Error::from(Error::UserNotAuthorized))?;
+        let session_cookie = cookies.get(COOKIE_NAME).ok_or(Error::UserNotAuthorized)?;
 
-        let session = store
-            .load_session(session_cookie.to_string())
-            .await
-            .map_err(|_| Error::Authorize.into_anyhow())?
-            .ok_or_else(|| Error::UserNotAuthorized.into_anyhow())?;
-
-        let user = session
-            .get::<User>("user")
-            .ok_or_else(|| Error::UserNotAuthorized.into_anyhow())?;
+        let mut jwt_validation = Validation::default();
+        jwt_validation.validate_exp = true;
+        let user_data = decode::<User>(session_cookie, &CONFIG.jwt_secret.1, &jwt_validation)
+            .map_err(|_| Error::UserNotAuthorized)?;
+        let user = user_data.claims;
 
         for allowed_email in &CONFIG.allowed_emails {
             if user.emails.contains(allowed_email) {
                 return Ok(user);
             }
         }
-        Err(Error::UserNotAllowed.into_anyhow().into())
+
+        Err(Error::UserNotAllowed.into())
     }
 }
 
@@ -111,13 +102,7 @@ async fn handle_get_authorized(
     Query(request): Query<AuthRequest>,
     State(state): State<AppState>,
 ) -> ResponseResult<(HeaderMap, Redirect)> {
-    Ok(authorized(
-        request,
-        state.session_store,
-        state.oauth_client,
-        state.http_client,
-    )
-    .await?)
+    Ok(authorized(request, state.oauth_client, state.http_client).await?)
 }
 
 #[derive(Deserialize, Debug)]
@@ -129,7 +114,6 @@ struct GitHubEmailsResp {
 
 async fn authorized(
     request: AuthRequest,
-    session_store: MemoryStore,
     oauth_client: BasicClient,
     http_client: reqwest::Client,
 ) -> Result<(HeaderMap, Redirect)> {
@@ -162,52 +146,26 @@ async fn authorized(
         }
     }
     if emails.is_empty() {
-        return Err(Error::Authorize.into_anyhow());
+        return Err(Error::Authorize.into());
     }
     let primary_email = primary_email.unwrap_or_else(|| emails[0].clone());
+
+    let now = Utc::now();
+    let exp = (now + Duration::days(1)).timestamp();
+
     let user = User {
         primary_email,
         emails,
+        exp,
     };
 
-    let mut session = Session::new();
-    session
-        .insert("user", &user)
-        .map_err(|_| Error::Authorize)?;
+    let session_token =
+        encode(&Default::default(), &user, &CONFIG.jwt_secret.0).map_err(|_| Error::Authorize)?;
 
-    let cookie = session_store
-        .store_session(session)
-        .await
-        .map_err(|_| Error::Authorize)?
-        .ok_or(Error::Authorize)?;
-    let cookie = format!("{}={}; SameSite=Lax; Path=/", COOKIE_NAME, cookie);
+    let cookie = format!("{}={}; SameSite=Lax; Path=/", COOKIE_NAME, session_token);
 
     let mut headers = HeaderMap::new();
     headers.insert(SET_COOKIE, cookie.parse().unwrap());
 
     Ok((headers, Redirect::to("/")))
-}
-
-async fn handle_get_logout(
-    State(state): State<AppState>,
-    TypedHeader(cookies): TypedHeader<headers::Cookie>,
-) -> ResponseResult<Redirect> {
-    let cookie = cookies.get(COOKIE_NAME).unwrap();
-    let session = match state
-        .session_store
-        .load_session(cookie.to_string())
-        .await
-        .map_err(|_| Error::LogOut.into_anyhow())?
-    {
-        Some(s) => s,
-        None => return Ok(Redirect::to("/")),
-    };
-
-    state
-        .session_store
-        .destroy_session(session)
-        .await
-        .map_err(|_| Error::LogOut.into_anyhow())?;
-
-    Ok(Redirect::to("/"))
 }
