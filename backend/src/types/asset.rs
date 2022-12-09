@@ -33,6 +33,14 @@ impl Ord for Metadata {
     }
 }
 
+fn parse_tags(tags: &str) -> BTreeSet<String> {
+    tags.split(',')
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(str::to_string)
+        .collect()
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MetadataCreationRequest {
@@ -50,7 +58,7 @@ impl From<MetadataCreationRequest> for Metadata {
         }: MetadataCreationRequest,
     ) -> Self {
         let created_at = Utc::now();
-        let tags = tags.split(',').map(str::trim).map(str::to_string).collect();
+        let tags = parse_tags(&tags);
         Self {
             creator_email,
             created_at,
@@ -77,7 +85,7 @@ impl MetadataUpdateRequest {
         }: Metadata,
     ) -> Metadata {
         let MetadataUpdateRequest { tags, description } = self;
-        let tags = tags.split(',').map(str::trim).map(str::to_string).collect();
+        let tags = parse_tags(&tags);
         Metadata {
             creator_email,
             created_at,
