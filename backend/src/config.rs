@@ -4,6 +4,7 @@ use anyhow::Result;
 use jsonwebtoken::{DecodingKey, EncodingKey};
 use once_cell::sync::Lazy;
 use serde::Deserialize;
+use url::Url;
 
 pub static CONFIG: Lazy<Config> =
     Lazy::new(|| Config::try_from_env().expect("failed to get config"));
@@ -48,6 +49,8 @@ pub struct Config {
 
     pub github_client_id: String,
     pub github_client_secret: String,
+
+    pub public_url: Url,
 
     #[serde(deserialize_with = "deserialize_jwt_secret")]
     pub jwt_secret: (EncodingKey, DecodingKey),

@@ -15,7 +15,7 @@ use http::{
 use jsonwebtoken::{decode, encode, Validation};
 use oauth2::{
     basic::BasicClient, reqwest::async_http_client, AuthUrl, AuthorizationCode, ClientId,
-    ClientSecret, CsrfToken, Scope, TokenResponse, TokenUrl,
+    ClientSecret, CsrfToken, RedirectUrl, Scope, TokenResponse, TokenUrl,
 };
 use serde::{Deserialize, Serialize};
 
@@ -84,11 +84,25 @@ where
     }
 }
 
-async fn handle_get_github(State(state): State<AppState>) -> Redirect {
+#[derive(Deserialize)]
+struct GetGitHubReq {
+    #[serde(default)]
+    redirect: Option<String>,
+}
+
+async fn handle_get_github(
+    State(state): State<AppState>,
+    Query(req): Query<GetGitHubReq>,
+) -> Redirect {
+    let mut redirect_url = CONFIG.public_url.join("./auth/authorized").unwrap();
+    if let Some(redirect) = req.redirect {
+        redirect_url.set_query(Some(&format!("redirect={}", redirect)));
+    }
     let (auth_url, _csrf_token) = state
         .oauth_client
         .authorize_url(CsrfToken::new_random)
         .add_scope(Scope::new("user:email".to_string()))
+        .set_redirect_uri(std::borrow::Cow::Owned(RedirectUrl::from_url(redirect_url)))
         .url();
     Redirect::to(auth_url.as_ref())
 }
@@ -96,13 +110,21 @@ async fn handle_get_github(State(state): State<AppState>) -> Redirect {
 #[derive(Deserialize)]
 struct AuthRequest {
     code: String,
+    #[serde(default)]
+    redirect: Option<String>,
 }
 
 async fn handle_get_authorized(
-    Query(request): Query<AuthRequest>,
+    Query(req): Query<AuthRequest>,
     State(state): State<AppState>,
 ) -> ResponseResult<(HeaderMap, Redirect)> {
-    Ok(authorized(request, state.oauth_client, state.http_client).await?)
+    Ok(authorized(
+        req.code,
+        state.oauth_client,
+        state.http_client,
+        req.redirect,
+    )
+    .await?)
 }
 
 #[derive(Deserialize, Debug)]
@@ -113,12 +135,13 @@ struct GitHubEmailsResp {
 }
 
 async fn authorized(
-    request: AuthRequest,
+    code: String,
     oauth_client: BasicClient,
     http_client: reqwest::Client,
+    redirect: Option<String>,
 ) -> Result<(HeaderMap, Redirect)> {
     let token = oauth_client
-        .exchange_code(AuthorizationCode::new(request.code))
+        .exchange_code(AuthorizationCode::new(code))
         .request_async(async_http_client)
         .await
         .map_err(|_| Error::Authorize)?;
@@ -167,5 +190,7 @@ async fn authorized(
     let mut headers = HeaderMap::new();
     headers.insert(SET_COOKIE, cookie.parse().unwrap());
 
-    Ok((headers, Redirect::to("/")))
+    let redirect = redirect.as_deref().unwrap_or("/");
+
+    Ok((headers, Redirect::to(redirect)))
 }
