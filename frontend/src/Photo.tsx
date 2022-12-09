@@ -28,12 +28,12 @@ function Photo() {
   }
 
   return (
-    <div className="flex">
-      <div className="w-2/3 p-5 flex justify-center items-center">
+    <div className="flex flex-col-reverse md:flex-row">
+      <div className="w-full md:w-2/3 p-5 flex justify-center items-center">
         <img src={`/asset/photo/${name}`} alt={metadata.description} />
       </div>
-      <div className="w-1/3 p-5">
-        <div className="mb-2">{metadata.createdAt}</div>
+      <div className="w-full md:w-1/3 p-5">
+        <div className="mb-2 break-all">{metadata.createdAt}</div>
         <div className="mb-2 whitespace-pre-line break-keep">
           {metadata.description}
         </div>
