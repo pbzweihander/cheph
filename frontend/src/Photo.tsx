@@ -33,6 +33,7 @@ function Photo() {
         <img src={`/asset/photo/${name}`} alt={metadata.description} />
       </div>
       <div className="w-1/3 p-5">
+        <div className="mb-2">{metadata.createdAt}</div>
         <div className="mb-2 whitespace-pre-line break-keep">
           {metadata.description}
         </div>
