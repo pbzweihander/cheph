@@ -80,7 +80,7 @@ function UploadPhoto() {
       </div>
       <div className="mb-2">
         <input
-          className="rounded-full px-5 py-2 bg-white"
+          className="rounded-full px-5 py-2 bg-white inline-block"
           type="submit"
           value="Submit"
           disabled={isLoading}

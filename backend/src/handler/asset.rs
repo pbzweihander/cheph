@@ -41,7 +41,7 @@ async fn handle_get_photo(
     State(state): State<AppState>,
     Path(name): Path<String>,
 ) -> ResponseResult<(HeaderMap, StreamBody<ByteStream>)> {
-    let output = s3::get_photo(state.s3_client, name)
+    let output = s3::get_photo(&state.s3_client, &name)
         .await
         .map_err(Error::S3)?;
     Ok(make_response_from_s3_output(output))
@@ -52,7 +52,7 @@ async fn handle_get_metadata(
     State(state): State<AppState>,
     Path(name): Path<String>,
 ) -> ResponseResult<(HeaderMap, StreamBody<ByteStream>)> {
-    let output = s3::get_metadata(state.s3_client, name)
+    let output = s3::get_metadata(&state.s3_client, &name)
         .await
         .map_err(Error::S3)?;
     Ok(make_response_from_s3_output(output))

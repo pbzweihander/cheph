@@ -23,12 +23,12 @@ function Search() {
     <div>
       <form className="p-2 mb-5" onSubmit={onSubmit}>
         <input
-          className="mr-2"
+          className="mr-2 mb-1"
           type="text"
           onChange={(event) => setToken(event.target.value)}
         />
         <input
-          className="rounded-full px-5 py-2 bg-white"
+          className="rounded-full px-5 py-2 bg-white inline-block"
           type="submit"
           value="Search"
           disabled={isLoading}

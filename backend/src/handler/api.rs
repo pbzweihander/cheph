@@ -24,7 +24,9 @@ pub(super) fn create_api_router() -> Router<AppState> {
         .route("/user", routing::get(handle_get_user))
         .route(
             "/photo/:name",
-            routing::post(handle_post_photo).put(handle_put_photo),
+            routing::post(handle_post_photo)
+                .put(handle_put_photo)
+                .delete(handle_delete_photo),
         )
         .route(
             "/tags-with-sample",
@@ -50,7 +52,7 @@ async fn handle_post_photo(
     RawBody(body): RawBody,
 ) -> ResponseResult<()> {
     let metadata = metadata_creation_req.create(user.primary_email);
-    s3::upload_photo(state.s3_client, name, metadata, body)
+    s3::upload_photo(&state.s3_client, &name, &metadata, body)
         .await
         .map_err(Error::S3)?;
     Ok(())
@@ -62,7 +64,7 @@ async fn handle_put_photo(
     State(state): State<AppState>,
     Json(req): Json<MetadataUpdateRequest>,
 ) -> ResponseResult<()> {
-    let resp = s3::get_metadata(state.s3_client.clone(), name.clone())
+    let resp = s3::get_metadata(&state.s3_client, &name)
         .await
         .map_err(Error::S3)?;
     let body = resp
@@ -73,7 +75,18 @@ async fn handle_put_photo(
         .into_bytes();
     let metadata = serde_json::from_slice(&body).map_err(|e| Error::S3(e.into()))?;
     let metadata = req.update(metadata);
-    s3::upload_metadata(state.s3_client, name, metadata)
+    s3::upload_metadata(&state.s3_client, &name, &metadata)
+        .await
+        .map_err(Error::S3)?;
+    Ok(())
+}
+
+async fn handle_delete_photo(
+    _user: User,
+    Path(name): Path<String>,
+    State(state): State<AppState>,
+) -> ResponseResult<()> {
+    s3::delete_photo(&state.s3_client, &name)
         .await
         .map_err(Error::S3)?;
     Ok(())
@@ -111,7 +124,7 @@ async fn handle_get_tags_with_sample(
     Query(req): Query<GetTagsWithSampleReq>,
     State(state): State<AppState>,
 ) -> ResponseResult<Json<BTreeMap<String, MetadataWithName>>> {
-    let metadatas = list_metadatas(state.s3_client).await.map_err(Error::S3)?;
+    let metadatas = list_metadatas(&state.s3_client).await.map_err(Error::S3)?;
     let mut tags_with_sample = BTreeMap::new();
     for metadata in metadatas {
         for tag in &metadata.metadata.tags {
@@ -140,7 +153,7 @@ async fn handle_get_metadatas(
     Query(req): Query<GetMetadatasReq>,
     State(state): State<AppState>,
 ) -> ResponseResult<Json<Vec<MetadataWithName>>> {
-    let metadatas = list_metadatas(state.s3_client).await.map_err(Error::S3)?;
+    let metadatas = list_metadatas(&state.s3_client).await.map_err(Error::S3)?;
     let metadatas = req.pagination.apply(metadatas.into_iter().rev()).collect();
     Ok(Json(metadatas))
 }
@@ -157,7 +170,7 @@ async fn handle_get_metadatas_by_tag(
     Query(req): Query<GetMetadatasByTagReq>,
     State(state): State<AppState>,
 ) -> ResponseResult<Json<Vec<MetadataWithName>>> {
-    let metadatas = list_metadatas(state.s3_client).await.map_err(Error::S3)?;
+    let metadatas = list_metadatas(&state.s3_client).await.map_err(Error::S3)?;
     let metadatas = metadatas
         .into_iter()
         .filter(|metadata| metadata.metadata.tags.contains(&req.tag));
@@ -175,7 +188,7 @@ async fn handle_post_search(
     State(state): State<AppState>,
     Json(req): Json<PostSearchReq>,
 ) -> ResponseResult<Json<Vec<MetadataWithName>>> {
-    let metadatas = list_metadatas(state.s3_client).await.map_err(Error::S3)?;
+    let metadatas = list_metadatas(&state.s3_client).await.map_err(Error::S3)?;
 
     let search_options = SearchOptions::new()
         .stop_words(vec!["-".to_string(), "_".to_string(), ".".to_string()])

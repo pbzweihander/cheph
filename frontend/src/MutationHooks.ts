@@ -57,3 +57,16 @@ export function useEditPhotoMutation(
     await client.put(`/api/photo/${name}`, payload);
   }, options);
 }
+
+export function useDeletePhotoMutation(
+  name: string | undefined,
+  options?: MutationOption<void>
+): MutationRet<void> {
+  const client = useAxiosClient();
+  return useMutation(async () => {
+    if (!name) {
+      return;
+    }
+    await client.delete(`/api/photo/${name}`);
+  }, options);
+}

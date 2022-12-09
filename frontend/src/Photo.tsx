@@ -1,11 +1,23 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
+import { useDeletePhotoMutation } from "./MutationHooks";
 import { useMetadata } from "./QueryHooks";
 import Spinner from "./Spinner";
 
 function Photo() {
+  const navigate = useNavigate();
   const { name } = useParams();
   const { data: metadata, isLoading } = useMetadata(name);
+  const { mutate: deletePhoto, isLoading: isDeleteLoading } =
+    useDeletePhotoMutation(name, {
+      onSuccess: () => {
+        navigate(-1);
+      },
+    });
+
+  const onDeleteClick = () => {
+    deletePhoto();
+  };
 
   if (isLoading) {
     return <Spinner />;
@@ -35,12 +47,21 @@ function Photo() {
             </Link>
           ))}
         </div>
-        <Link
-          className="rounded-full px-5 py-2 bg-white"
-          to={`/photo/${name}/edit`}
-        >
-          Edit
-        </Link>
+        <div>
+          <Link
+            className="rounded-full px-5 py-2 bg-white inline-block mr-3 mb-1"
+            to={`/photo/${name}/edit`}
+          >
+            Edit
+          </Link>
+          <button
+            className="rounded-full px-5 py-2 bg-red-400 inline-block"
+            onClick={onDeleteClick}
+            disabled={isDeleteLoading}
+          >
+            Delete
+          </button>
+        </div>
       </div>
     </div>
   );
