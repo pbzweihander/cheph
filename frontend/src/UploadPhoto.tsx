@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { MetadataCreationRequest, UploadReq } from "./HttpTypes";
@@ -10,6 +10,7 @@ function UploadPhoto() {
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
   const [file, setFile] = useState<File | undefined>(undefined);
+  const [preview, setPreview] = useState<string | undefined>(undefined);
 
   const { mutate: upload, isLoading } = useUploadMutation({
     onSuccess: () => {
@@ -20,6 +21,18 @@ function UploadPhoto() {
       }
     },
   });
+
+  useEffect(() => {
+    if (!file) {
+      setPreview(undefined);
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setPreview(previewUrl);
+
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [file]);
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -43,6 +56,13 @@ function UploadPhoto() {
   return (
     <form onSubmit={onSubmit}>
       <div className="mb-2">
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(event) => setFile(event.target.files?.[0])}
+        />
+      </div>
+      <div className="mb-2">
         <label>Description: </label>
         <textarea
           className="w-full h-[200px]"
@@ -60,18 +80,13 @@ function UploadPhoto() {
       </div>
       <div className="mb-2">
         <input
-          type="file"
-          onChange={(event) => setFile(event.target.files?.[0])}
-        />
-      </div>
-      <div>
-        <input
           className="rounded-full px-5 py-2 bg-white"
           type="submit"
           value="Submit"
           disabled={isLoading}
         />
       </div>
+      <div>{file && preview && <img src={preview} alt={description} />}</div>
     </form>
   );
 }
