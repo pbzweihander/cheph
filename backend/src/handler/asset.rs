@@ -11,7 +11,7 @@ use http::{
 
 use crate::{s3, types::error::Error};
 
-use super::{AppState, ResponseResult};
+use super::{auth::User, AppState, ResponseResult};
 
 pub(super) fn create_asset_router() -> Router<AppState> {
     Router::new()
@@ -37,6 +37,7 @@ fn make_response_from_s3_output(output: GetObjectOutput) -> (HeaderMap, StreamBo
 }
 
 async fn handle_get_photo(
+    _user: User,
     State(state): State<AppState>,
     Path(name): Path<String>,
 ) -> ResponseResult<(HeaderMap, StreamBody<ByteStream>)> {
@@ -47,6 +48,7 @@ async fn handle_get_photo(
 }
 
 async fn handle_get_metadata(
+    _user: User,
     State(state): State<AppState>,
     Path(name): Path<String>,
 ) -> ResponseResult<(HeaderMap, StreamBody<ByteStream>)> {
