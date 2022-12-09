@@ -17,16 +17,18 @@ function Photo() {
 
   return (
     <div className="flex">
-      <div className="w-2/3 p-5 flex justify-center">
+      <div className="w-2/3 p-5 flex justify-center items-center">
         <img src={`/asset/photo/${name}`} alt={metadata.description} />
       </div>
       <div className="w-1/3 p-5">
-        <div className="mb-2 whitespace-pre-line">{metadata.description}</div>
+        <div className="mb-2 whitespace-pre-line break-keep">
+          {metadata.description}
+        </div>
         <div className="mb-5">
           {metadata.tags.map((tag) => (
             <Link
               key={tag}
-              className="inline-block bg-gray-300 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2"
+              className="inline-block bg-gray-300 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 break-keep"
               to={`/photos-by-tag/${tag}`}
             >
               #{tag}

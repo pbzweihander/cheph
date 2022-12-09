@@ -79,11 +79,9 @@ export function useTagsWithSampleInfinite(): UseInfiniteQueryWithScrollRet<TagsW
     ["tags-with-sample"],
     async ({ pageParam = 0 }) => {
       const resp =
-        (await get<TagsWithSample>(
-          client,
-          "/api/tags-with-sample",
-          { page: pageParam }
-        )) || {};
+        (await get<TagsWithSample>(client, "/api/tags-with-sample", {
+          page: pageParam,
+        })) || {};
       const nextPage =
         Object.entries(resp).length > 0 ? pageParam + 1 : undefined;
       return { result: resp, nextPage, isLast: !nextPage };
@@ -113,10 +111,7 @@ export function useMetadata(
     if (!name) {
       return undefined;
     }
-    const resp = await get<Metadata>(
-      client,
-      `/asset/metadata/${name}`,
-    );
+    const resp = await get<Metadata>(client, `/asset/metadata/${name}`);
     return resp;
   });
 }
@@ -130,11 +125,9 @@ export function useMetadatasInfinite(): UseInfiniteQueryWithScrollRet<
     ["metadatas"],
     async ({ pageParam = 0 }) => {
       const resp =
-        (await get<MetadataWithName[]>(
-          client,
-          "/api/metadatas",
-          { page: pageParam }
-        )) || [];
+        (await get<MetadataWithName[]>(client, "/api/metadatas", {
+          page: pageParam,
+        })) || [];
       const nextPage = resp.length > 0 ? pageParam + 1 : undefined;
       return { result: resp, nextPage, isLast: !nextPage };
     },
@@ -166,11 +159,10 @@ export function useMetadatasByTagInfinite(
         return { result: [], nextPage: undefined, isLast: true };
       }
       const resp =
-        (await get<MetadataWithName[]>(
-          client,
-          "/api/metadatas-by-tag",
-          { tag, page: pageParam }
-        )) || [];
+        (await get<MetadataWithName[]>(client, "/api/metadatas-by-tag", {
+          tag,
+          page: pageParam,
+        })) || [];
       const nextPage = resp.length > 0 ? pageParam + 1 : undefined;
       return { result: resp, nextPage, isLast: !nextPage };
     },
