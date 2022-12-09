@@ -12,7 +12,7 @@ use simsearch::{SearchOptions, SimSearch};
 use crate::{
     s3::{self, list_metadatas},
     types::{
-        asset::{Metadata, MetadataCreationRequest, MetadataUpdateRequest, MetadataWithName},
+        asset::{MetadataCreationRequest, MetadataUpdateRequest, MetadataWithName},
         error::Error,
     },
 };
@@ -43,13 +43,13 @@ async fn handle_get_user(user: User) -> Json<User> {
 }
 
 async fn handle_post_photo(
-    _user: User,
+    user: User,
     Path(name): Path<String>,
     Query(metadata_creation_req): Query<MetadataCreationRequest>,
     State(state): State<AppState>,
     RawBody(body): RawBody,
 ) -> ResponseResult<()> {
-    let metadata: Metadata = metadata_creation_req.into();
+    let metadata = metadata_creation_req.create(user.primary_email);
     s3::upload_photo(state.s3_client, name, metadata, body)
         .await
         .map_err(Error::S3)?;

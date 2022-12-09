@@ -1,14 +1,11 @@
 import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useUser } from "./Auth";
 import { MetadataCreationRequest, UploadReq } from "./HttpTypes";
 import { useUploadMutation } from "./MutationHooks";
 
 function UploadPhoto() {
   const navigate = useNavigate();
-
-  const user = useUser();
 
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
@@ -32,7 +29,6 @@ function UploadPhoto() {
     }
 
     const metadata: MetadataCreationRequest = {
-      creatorEmail: user.primaryEmail,
       tags,
       description,
     };

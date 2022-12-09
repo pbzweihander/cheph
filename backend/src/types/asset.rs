@@ -44,22 +44,16 @@ fn parse_tags(tags: &str) -> BTreeSet<String> {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MetadataCreationRequest {
-    pub creator_email: String,
     pub tags: String,
     pub description: String,
 }
 
-impl From<MetadataCreationRequest> for Metadata {
-    fn from(
-        MetadataCreationRequest {
-            creator_email,
-            tags,
-            description,
-        }: MetadataCreationRequest,
-    ) -> Self {
+impl MetadataCreationRequest {
+    pub fn create(self, creator_email: String) -> Metadata {
+        let MetadataCreationRequest { tags, description } = self;
         let created_at = Utc::now();
         let tags = parse_tags(&tags);
-        Self {
+        Metadata {
             creator_email,
             created_at,
             tags,

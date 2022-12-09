@@ -13,7 +13,6 @@ export interface Metadata {
 export type MetadataWithName = Metadata & { name: string };
 
 export interface MetadataCreationRequest {
-  creatorEmail: string;
   tags: string;
   description: string;
 }
