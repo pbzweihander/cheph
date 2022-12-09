@@ -26,7 +26,7 @@ impl response::IntoResponse for ResponseError {
         let status_code = if let Some(error) = self.0.downcast_ref::<Error>() {
             match error {
                 Error::UserNotAuthorized => StatusCode::UNAUTHORIZED,
-                Error::UserNotAllowed => StatusCode::UNAUTHORIZED,
+                Error::UserNotAllowed => StatusCode::FORBIDDEN,
                 Error::Authorize => StatusCode::INTERNAL_SERVER_ERROR,
                 Error::S3(_) => StatusCode::INTERNAL_SERVER_ERROR,
             }

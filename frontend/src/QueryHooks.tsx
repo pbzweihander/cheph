@@ -7,7 +7,6 @@ import {
   useQuery,
   UseQueryResult,
 } from "react-query";
-import { useLocation } from "react-router-dom";
 
 import { useAxiosClient } from "./AxiosContext";
 import { Metadata, MetadataWithName, TagsWithSample, User } from "./HttpTypes";
@@ -15,7 +14,6 @@ import { Metadata, MetadataWithName, TagsWithSample, User } from "./HttpTypes";
 async function get<T>(
   client: AxiosInstance,
   url: string,
-  currentPath: string,
   params?: any
 ): Promise<T | undefined> {
   try {
@@ -26,9 +24,6 @@ async function get<T>(
   } catch (error) {
     if (isAxiosError(error)) {
       if (error.response?.status === 404) {
-        return undefined;
-      } else if (error.response?.status === 401) {
-        window.location.replace(`/auth/github?redirect=${currentPath}`);
         return undefined;
       }
     }
@@ -58,18 +53,17 @@ function makeObservationComponent<T>(
 
 interface UseInfiniteQueryWithScrollRet<T> {
   data: T | undefined;
-  error: string | undefined | unknown;
+  error: AxiosError | unknown;
   isFetching: boolean;
   ObservationComponent: () => ReactElement;
 }
 
 export function useUserFromQuery(): UseQueryResult<User, AxiosError> {
-  const location = useLocation();
   const client = useAxiosClient();
   return useQuery(
     ["user"],
     async () => {
-      const resp = await get<User>(client, "/api/user", location.pathname);
+      const resp = await get<User>(client, "/api/user");
       return resp;
     },
     {
@@ -79,7 +73,6 @@ export function useUserFromQuery(): UseQueryResult<User, AxiosError> {
 }
 
 export function useTagsWithSampleInfinite(): UseInfiniteQueryWithScrollRet<TagsWithSample> {
-  const location = useLocation();
   const client = useAxiosClient();
 
   const { data, error, isFetching, fetchNextPage } = useInfiniteQuery(
@@ -89,7 +82,6 @@ export function useTagsWithSampleInfinite(): UseInfiniteQueryWithScrollRet<TagsW
         (await get<TagsWithSample>(
           client,
           "/api/tags-with-sample",
-          location.pathname,
           { page: pageParam }
         )) || {};
       const nextPage =
@@ -115,7 +107,6 @@ export function useTagsWithSampleInfinite(): UseInfiniteQueryWithScrollRet<TagsW
 export function useMetadata(
   name: string | undefined
 ): UseQueryResult<Metadata | undefined, AxiosError> {
-  const location = useLocation();
   const client = useAxiosClient();
 
   return useQuery(["metadata", name], async () => {
@@ -125,7 +116,6 @@ export function useMetadata(
     const resp = await get<Metadata>(
       client,
       `/asset/metadata/${name}`,
-      location.pathname
     );
     return resp;
   });
@@ -134,7 +124,6 @@ export function useMetadata(
 export function useMetadatasInfinite(): UseInfiniteQueryWithScrollRet<
   MetadataWithName[]
 > {
-  const location = useLocation();
   const client = useAxiosClient();
 
   const { data, error, isFetching, fetchNextPage } = useInfiniteQuery(
@@ -144,7 +133,6 @@ export function useMetadatasInfinite(): UseInfiniteQueryWithScrollRet<
         (await get<MetadataWithName[]>(
           client,
           "/api/metadatas",
-          location.pathname,
           { page: pageParam }
         )) || [];
       const nextPage = resp.length > 0 ? pageParam + 1 : undefined;
@@ -169,7 +157,6 @@ export function useMetadatasInfinite(): UseInfiniteQueryWithScrollRet<
 export function useMetadatasByTagInfinite(
   tag: string | undefined
 ): UseInfiniteQueryWithScrollRet<MetadataWithName[]> {
-  const location = useLocation();
   const client = useAxiosClient();
 
   const { data, error, isFetching, fetchNextPage } = useInfiniteQuery(
@@ -182,7 +169,6 @@ export function useMetadatasByTagInfinite(
         (await get<MetadataWithName[]>(
           client,
           "/api/metadatas-by-tag",
-          location.pathname,
           { tag, page: pageParam }
         )) || [];
       const nextPage = resp.length > 0 ? pageParam + 1 : undefined;
