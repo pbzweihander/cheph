@@ -25,13 +25,14 @@ type MutationOption<T, Ret = void> = Omit<
 >;
 
 export function useUploadMutation(
-  options?: MutationOption<UploadReq>
-): MutationRet<UploadReq> {
+  options?: MutationOption<UploadReq, string>
+): MutationRet<UploadReq, string> {
   const client = useAxiosClient();
   return useMutation(async (payload: UploadReq) => {
-    await client.post(`/api/photo/${payload.file.name}`, payload.file, {
+    await client.post(`/api/photo/${payload.name}`, payload.file, {
       params: payload.metadata,
     });
+    return payload.name;
   }, options);
 }
 

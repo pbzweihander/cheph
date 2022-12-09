@@ -4,21 +4,29 @@ import { useNavigate } from "react-router-dom";
 import { MetadataCreationRequest, UploadReq } from "./HttpTypes";
 import { useUploadMutation } from "./MutationHooks";
 
+function generateRandomString(length: number): string {
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
 function UploadPhoto() {
   const navigate = useNavigate();
 
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
   const [file, setFile] = useState<File | undefined>(undefined);
+  const [scrubName, setScrubName] = useState(false);
   const [preview, setPreview] = useState<string | undefined>(undefined);
 
   const { mutate: upload, isLoading } = useUploadMutation({
-    onSuccess: () => {
-      if (file) {
-        navigate(`/photo/${file.name}`);
-      } else {
-        navigate(`/tag`);
-      }
+    onSuccess: (name) => {
+      navigate(`/photo/${name}`);
     },
   });
 
@@ -46,7 +54,17 @@ function UploadPhoto() {
       description,
     };
 
+    let name;
+    if (scrubName) {
+      const splitName = file.name.split(".");
+      const ext = splitName[splitName.length - 1] || "";
+      name = generateRandomString(30) + "." + ext;
+    } else {
+      name = file.name;
+    }
+
     const req: UploadReq = {
+      name,
       file,
       metadata,
     };
@@ -77,6 +95,17 @@ function UploadPhoto() {
           value={tags}
           onChange={(event) => setTags(event.target.value)}
         />
+      </div>
+      <div className="mb-2">
+        <label>
+          <input
+            className="mr-2"
+            type="checkbox"
+            checked={scrubName}
+            onChange={(event) => setScrubName(event.target.checked)}
+          />
+          Scrub file name
+        </label>
       </div>
       <div className="mb-2">
         <input

@@ -18,6 +18,7 @@ export interface MetadataCreationRequest {
 }
 
 export interface UploadReq {
+  name: string;
   file: File;
   metadata: MetadataCreationRequest;
 }
