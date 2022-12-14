@@ -16,7 +16,9 @@ function Photo() {
     });
 
   const onDeleteClick = () => {
-    deletePhoto();
+    if (window.confirm(`Delete photo ${name}\nAre you sure?`)) {
+      deletePhoto();
+    }
   };
 
   if (isLoading) {
