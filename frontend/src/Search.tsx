@@ -3,6 +3,7 @@ import { FormEvent, useState } from "react";
 import { MetadataWithName } from "./HttpTypes";
 import { useSearchMutation } from "./MutationHooks";
 import PhotoCard from "./PhotoCard";
+import Spinner from "./Spinner";
 
 function Search() {
   const [token, setToken] = useState("");
@@ -27,12 +28,15 @@ function Search() {
           type="text"
           onChange={(event) => setToken(event.target.value)}
         />
-        <input
-          className="rounded-full px-5 py-2 bg-white inline-block"
-          type="submit"
-          value="Search"
-          disabled={isLoading}
-        />
+        {isLoading ? (
+          <Spinner />
+        ) : (
+          <input
+            className="rounded-full px-5 py-2 bg-white inline-block"
+            type="submit"
+            value="Search"
+          />
+        )}
       </form>
       <div className="grid grid-cols-3 md:grid-cols-6 gap-4 items-center">
         {metadatas?.map((metadata) => (

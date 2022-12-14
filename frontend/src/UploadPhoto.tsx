@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { MetadataCreationRequest, UploadReq } from "./HttpTypes";
 import { useUploadMutation } from "./MutationHooks";
+import Spinner from "./Spinner";
 
 function generateRandomString(length: number): string {
   const characters =
@@ -108,12 +109,15 @@ function UploadPhoto() {
         </label>
       </div>
       <div className="mb-2">
-        <input
-          className="rounded-full px-5 py-2 bg-white inline-block"
-          type="submit"
-          value="Submit"
-          disabled={isLoading}
-        />
+        {isLoading ? (
+          <Spinner />
+        ) : (
+          <input
+            className="rounded-full px-5 py-2 bg-white inline-block"
+            type="submit"
+            value="Submit"
+          />
+        )}
       </div>
       <div>{file && preview && <img src={preview} alt={description} />}</div>
     </form>

@@ -63,12 +63,15 @@ function EditPhoto() {
           />
         </div>
         <div>
-          <input
-            className="rounded-full px-5 py-2 bg-white"
-            type="submit"
-            value="Edit"
-            disabled={isEditLoading}
-          />
+          {isEditLoading ? (
+            <Spinner />
+          ) : (
+            <input
+              className="rounded-full px-5 py-2 bg-white"
+              type="submit"
+              value="Edit"
+            />
+          )}
         </div>
       </form>
     </div>

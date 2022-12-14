@@ -57,13 +57,16 @@ function Photo() {
           >
             Edit
           </Link>
-          <button
-            className="rounded-full px-5 py-2 bg-red-400 inline-block"
-            onClick={onDeleteClick}
-            disabled={isDeleteLoading}
-          >
-            Delete
-          </button>
+          {isDeleteLoading ? (
+            <Spinner />
+          ) : (
+            <button
+              className="rounded-full px-5 py-2 bg-red-400 inline-block"
+              onClick={onDeleteClick}
+            >
+              Delete
+            </button>
+          )}
         </div>
       </div>
     </div>
