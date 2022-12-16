@@ -93,7 +93,7 @@ async fn handle_delete_photo(
 }
 
 fn default_page_size() -> usize {
-    15
+    24
 }
 
 #[serde_as]
