@@ -192,7 +192,7 @@ async fn handle_post_search(
 
     let search_options = SearchOptions::new()
         .stop_words(vec!["-".to_string(), "_".to_string(), ".".to_string()])
-        .threshold(0.7);
+        .threshold(0.6);
     let mut search = SimSearch::new_with(search_options);
 
     for metadata in metadatas {
