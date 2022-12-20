@@ -32,7 +32,7 @@ export default function NavBar(): React.ReactElement {
         </li>
         <li className="nav-item">
           <Link to="/tag">
-            <span className="px-3 py-2 flex items-center hover:opacity-75">
+            <span className="px-2 py-2 flex items-center hover:opacity-75">
               <span className="ml-2">Tags</span>
             </span>
           </Link>
