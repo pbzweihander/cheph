@@ -81,7 +81,12 @@ export default function NavBar(): React.ReactElement {
 
   return (
     <>
-      <nav className="relative flex flex-wrap items-center justify-between px-2 py-3 bg-gray-100 h-[70px]">
+      <nav
+        className={
+          "relative flex flex-wrap items-center justify-between px-2 py-3 bg-gray-100 md:h-[70px]" +
+          (navbarOpen ? " h-[310px]" : " h-[70px]")
+        }
+      >
         <div className="container px-4 mx-auto flex flex-wrap items-center justify-between">
           <div className="w-full relative flex justify-between md:w-auto md:static md:block md:justify-start">
             <h1 className="text-4xl font-mono">cheph</h1>
@@ -105,7 +110,14 @@ export default function NavBar(): React.ReactElement {
           </div>
         </div>
       </nav>
-      <div className="min-h-[calc(100vh-70px)] h-full w-full bg-gray-200 flex flex-col p-5">
+      <div
+        className={
+          "md:min-h-[calc(100vh-70px)] h-full w-full bg-gray-200 flex flex-col p-5" +
+          (navbarOpen
+            ? " min-h-[calc(100vh-310px)]"
+            : " min-h-[calc(100vh-70px)]")
+        }
+      >
         <Outlet />
       </div>
     </>
