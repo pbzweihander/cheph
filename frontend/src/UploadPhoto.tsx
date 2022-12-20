@@ -119,7 +119,11 @@ function UploadPhoto() {
           />
         )}
       </div>
-      <div>{file && preview && <img src={preview} alt={description} />}</div>
+      <div>
+        {file && preview && (
+          <img className="shadow-lg" src={preview} alt={description} />
+        )}
+      </div>
     </form>
   );
 }
